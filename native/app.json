@@ -1,0 +1,63 @@
+{
+  "expo": {
+    "name": "Posture Maxx",
+    "slug": "posture-maxx",
+    "scheme": "posturemaxx",
+    "version": "0.1.0",
+    "orientation": "portrait",
+    "icon": "./assets/icon.png",
+    "userInterfaceStyle": "dark",
+    "newArchEnabled": true,
+    "splash": {
+      "image": "./assets/splash.png",
+      "resizeMode": "contain",
+      "backgroundColor": "#080808"
+    },
+    "assetBundlePatterns": ["**/*"],
+    "ios": {
+      "supportsTablet": true,
+      "bundleIdentifier": "com.posturemaxx.app",
+      "infoPlist": {
+        "NSCameraUsageDescription": "Posture Maxx benötigt die Kamera für den 3-Fotos-Scan deiner Körperhaltung. Die Bilder verlassen dein Gerät nicht.",
+        "NSPhotoLibraryUsageDescription": "Wähle 3 Fotos aus deiner Galerie für die Haltungs-Analyse. Die Bilder verlassen dein Gerät nicht.",
+        "ITSAppUsesNonExemptEncryption": false
+      }
+    },
+    "android": {
+      "package": "com.posturemaxx.app",
+      "adaptiveIcon": {
+        "foregroundImage": "./assets/icon-foreground.png",
+        "backgroundColor": "#080808"
+      },
+      "permissions": [
+        "android.permission.CAMERA",
+        "android.permission.READ_MEDIA_IMAGES"
+      ]
+    },
+    "plugins": [
+      "expo-router",
+      "expo-font",
+      [
+        "expo-camera",
+        {
+          "cameraPermission": "Posture Maxx benötigt die Kamera für den 3-Fotos-Scan deiner Körperhaltung."
+        }
+      ],
+      [
+        "expo-image-picker",
+        {
+          "photosPermission": "Wähle 3 Fotos aus deiner Galerie für die Haltungs-Analyse."
+        }
+      ],
+      "expo-splash-screen"
+    ],
+    "experiments": {
+      "typedRoutes": true
+    },
+    "extra": {
+      "eas": {
+        "projectId": "REPLACE_WITH_EAS_PROJECT_ID"
+      }
+    }
+  }
+}
