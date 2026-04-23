@@ -1,0 +1,1784 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Posture Maxx</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=DM+Sans:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+<script crossorigin src="https://unpkg.com/react@18.3.1/umd/react.production.min.js"></script>
+<script crossorigin src="https://unpkg.com/react-dom@18.3.1/umd/react-dom.production.min.js"></script>
+<script src="https://unpkg.com/@babel/standalone@7.29.0/babel.min.js"></script>
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  html, body { width: 100%; height: 100%; background: #0a0a0a; font-family: 'DM Sans', sans-serif; overflow: hidden; }
+
+  .canvas {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    height: 100vh;
+    padding: 32px;
+    overflow: hidden;
+  }
+
+  @keyframes fadeUp {
+    from { opacity: 0; transform: translateY(20px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+  @keyframes scaleIn {
+    from { opacity: 0; transform: scale(0.85); }
+    to { opacity: 1; transform: scale(1); }
+  }
+  @keyframes pulse {
+    0%, 100% { opacity: 1; }
+    50% { opacity: 0.5; }
+  }
+  @keyframes scanLine {
+    0% { top: 15%; }
+    100% { top: 85%; }
+  }
+</style>
+</head>
+<body>
+
+<div class="canvas" id="root"></div>
+
+<script type="text/babel" data-presets="react">
+// ══════════════════════════════════════════════════════════════
+// iOS Device Frame
+// ══════════════════════════════════════════════════════════════
+function IOSStatusBar({ dark = false, time = '9:41' }) {
+  const c = dark ? '#fff' : '#000';
+  return (
+    <div style={{display:'flex',gap:154,alignItems:'center',justifyContent:'center',padding:'21px 24px 19px',boxSizing:'border-box',position:'relative',zIndex:20,width:'100%'}}>
+      <div style={{flex:1,height:22,display:'flex',alignItems:'center',justifyContent:'center',paddingTop:1.5}}>
+        <span style={{fontFamily:'-apple-system,"SF Pro",system-ui',fontWeight:590,fontSize:17,lineHeight:'22px',color:c}}>{time}</span>
+      </div>
+      <div style={{flex:1,height:22,display:'flex',alignItems:'center',justifyContent:'center',gap:7,paddingTop:1,paddingRight:1}}>
+        <svg width="19" height="12" viewBox="0 0 19 12">
+          <rect x="0" y="7.5" width="3.2" height="4.5" rx="0.7" fill={c}/>
+          <rect x="4.8" y="5" width="3.2" height="7" rx="0.7" fill={c}/>
+          <rect x="9.6" y="2.5" width="3.2" height="9.5" rx="0.7" fill={c}/>
+          <rect x="14.4" y="0" width="3.2" height="12" rx="0.7" fill={c}/>
+        </svg>
+        <svg width="17" height="12" viewBox="0 0 17 12">
+          <path d="M8.5 3.2C10.8 3.2 12.9 4.1 14.4 5.6L15.5 4.5C13.7 2.7 11.2 1.5 8.5 1.5C5.8 1.5 3.3 2.7 1.5 4.5L2.6 5.6C4.1 4.1 6.2 3.2 8.5 3.2Z" fill={c}/>
+          <path d="M8.5 6.8C9.9 6.8 11.1 7.3 12 8.2L13.1 7.1C11.8 5.9 10.2 5.1 8.5 5.1C6.8 5.1 5.2 5.9 3.9 7.1L5 8.2C5.9 7.3 7.1 6.8 8.5 6.8Z" fill={c}/>
+          <circle cx="8.5" cy="10.5" r="1.5" fill={c}/>
+        </svg>
+        <svg width="27" height="13" viewBox="0 0 27 13">
+          <rect x="0.5" y="0.5" width="23" height="12" rx="3.5" stroke={c} strokeOpacity="0.35" fill="none"/>
+          <rect x="2" y="2" width="20" height="9" rx="2" fill={c}/>
+          <path d="M25 4.5V8.5C25.8 8.2 26.5 7.2 26.5 6.5C26.5 5.8 25.8 4.8 25 4.5Z" fill={c} fillOpacity="0.4"/>
+        </svg>
+      </div>
+    </div>
+  );
+}
+
+function IOSDevice({ children, width = 390, height = 844, dark = true }) {
+  return (
+    <div style={{
+      width, height, borderRadius: 48, overflow: 'hidden',
+      position: 'relative', background: dark ? '#000' : '#F2F2F7',
+      boxShadow: '0 40px 80px rgba(0,0,0,0.4), 0 0 0 1px rgba(255,255,255,0.08)',
+      fontFamily: '-apple-system, system-ui, sans-serif',
+      WebkitFontSmoothing: 'antialiased',
+    }}>
+      <div style={{position:'absolute',top:11,left:'50%',transform:'translateX(-50%)',width:126,height:37,borderRadius:24,background:'#000',zIndex:50}}/>
+      <div style={{position:'absolute',top:0,left:0,right:0,zIndex:10}}>
+        <IOSStatusBar dark={dark}/>
+      </div>
+      <div style={{height:'100%',display:'flex',flexDirection:'column'}}>
+        <div style={{flex:1,overflow:'hidden'}}>{children}</div>
+      </div>
+      <div style={{position:'absolute',bottom:0,left:0,right:0,zIndex:60,height:34,display:'flex',justifyContent:'center',alignItems:'flex-end',paddingBottom:8,pointerEvents:'none'}}>
+        <div style={{width:139,height:5,borderRadius:100,background:dark?'rgba(255,255,255,0.7)':'rgba(0,0,0,0.25)'}}/>
+      </div>
+    </div>
+  );
+}
+
+// ══════════════════════════════════════════════════════════════
+// Copy (DE/EN)
+// ══════════════════════════════════════════════════════════════
+const copy = {
+  de: {
+    splash_title: "DEINE HALTUNG.\nDEIN SCORE.",
+    splash_sub: "Analysiere deine Körperhaltung in 60 Sekunden — wissenschaftlich, visuell, actionable.",
+    splash_cta: "Kostenlos starten",
+    splash_sub2: "1 kostenloser Scan · Kein Konto nötig",
+
+    ob1_title: "Du verlierst täglich Energie.",
+    ob1_sub: "Schlechte Körperhaltung verursacht Rückenschmerzen, Kopfschmerzen und Erschöpfung — ohne dass du es merkst.",
+    ob1_stat1: "80%", ob1_label1: "leiden an Rückenschmerzen",
+    ob1_stat2: "6 cm", ob1_label2: "Kopfvorhalte im Schnitt",
+    ob1_stat3: "40%", ob1_label3: "weniger Lungenvolumen",
+    ob1_now: "Jetzt",
+    ob1_day30: "Tag 30",
+    ob1_cta: "Weiter",
+
+    ob2_title: "So funktioniert's.",
+    ob2_steps: [
+      { n: "01", title: "3 Fotos machen", sub: "Seite, Front, Rücken. Silhouetten-Overlay erzwingt die richtige Position." },
+      { n: "02", title: "KI analysiert dich", sub: "On-device Pose-Detection misst Winkel, Schiefstellungen, Asymmetrien." },
+      { n: "03", title: "Score + Plan", sub: "A–F pro Zone. Dazu 3–5 Übungen täglich, 10 Minuten. Wöchentlicher Re-Scan." },
+    ],
+    ob2_demo_label: "Live-Demo",
+    ob2_demo_text: "Pose-Detection erkennt 33 Körperpunkte in Echtzeit",
+    ob2_cta: "Loslegen",
+
+    ob3_title: "Schnell. Kein Konto.",
+    ob3_sub: "Wie heisst du?",
+    ob3_placeholder: "Dein Vorname",
+    ob3_goal: "Was ist dein Hauptziel?",
+    ob3_goals: ["Rückenschmerzen reduzieren", "Athletischer aussehen", "Mehr Energie im Alltag", "Haltung für Sport optimieren"],
+    ob3_cta: "Weiter zum Scan",
+
+    cam_title: "Scan vorbereiten",
+    cam_guide: [
+      "Stelle das Handy auf Hüfthöhe ab",
+      "2 Meter Abstand von der Kamera",
+      "Steh seitlich zur Kamera",
+      "Ganzkörper muss sichtbar sein",
+    ],
+    cam_cta: "Scan starten",
+    disclaimer: "Kein Ersatz für medizinische Beratung. Bei Schmerzen bitte Arzt oder Physio aufsuchen.",
+
+    scan_labels: { side: "Seitenprofil", front: "Frontal", back: "Rücken" },
+    scan_hints: {
+      side: "Steh seitlich, Arme locker am Körper",
+      front: "Blick zur Kamera, Arme leicht abgespreizt",
+      back: "Rücken zur Kamera, Arme locker am Körper",
+    },
+    scan_live: "LIVE",
+    scan_done: "AUFGENOMMEN",
+    scan_offline: "OFFLINE",
+    scan_no_cam: "Kamera nicht verfügbar — nutze Galerie",
+    scan_next_step: "Nächstes Foto →",
+    scan_next: "Weiter → Analyse",
+    scan_gallery: "Aus Galerie",
+    result_your_photo: "Dein Foto",
+
+    result_title: "DEIN HALTUNGS-SCORE",
+    result_date: "21 APR 2026",
+    result_overall: "Gesamt",
+    result_deviation: "Abweichung",
+    result_zones: [
+      { label: "Kopf-Vorhaltung", score: "D", angle: "14°" },
+      { label: "Schultern", score: "C", angle: "8°" },
+      { label: "Wirbelsäule", score: "B", angle: "4°" },
+      { label: "Becken", score: "D", angle: "11°" },
+      { label: "Knie-Achse", score: "B", angle: "3°" },
+    ],
+    result_zone_labels: {
+      head: "Kopf-Vorhaltung", shoulders: "Schultern",
+      spine: "Wirbelsäule", pelvis: "Becken", knees: "Knie-Achse",
+    },
+    result_unit: { head: "°", shoulders: "%", spine: "°", pelvis: "%", knees: "°" },
+    result_cta: "Plan freischalten →",
+    result_share: "Ergebnis teilen",
+    analyze_title: "Analyse läuft",
+    analyze_sub: "On-Device, deine Fotos bleiben auf dem Gerät",
+    analyze_loading: "Modell wird geladen…",
+    analyze_step: (i, n) => `Foto ${i} / ${n}`,
+    analyze_done: "Scores berechnen…",
+    analyze_error: "Keine Person erkannt. Tritt näher und stelle sicher dass der Ganzkörper im Bild ist.",
+    analyze_retry: "Noch einmal versuchen",
+
+    pay_title: "Starte deinen\n30-Tage-Plan",
+    pay_sub: "Täglich 10 Minuten. Wöchentlicher Scan. Sichtbare Ergebnisse.",
+    pay_features: [
+      "Personalisierter Übungsplan",
+      "Wöchentlicher Re-Scan mit Before/After",
+      "Unbegrenzte Scans",
+      "TikTok-ready Ergebnis-Cards",
+    ],
+    pay_weekly_label: "Wöchentlich",
+    pay_yearly_label: "Jährlich",
+    pay_weekly_price: "CHF 4.99 / Woche",
+    pay_yearly_price: "CHF 39.99 / Jahr",
+    pay_yearly_per_week: "= CHF 3.33 / Woche",
+    pay_trial_hint: "3 Tage kostenlos testen",
+    pay_badge: "Beliebt",
+    pay_cta_prefix: "3 Tage kostenlos testen — dann",
+    pay_legal: "Jederzeit kündbar. Apple-Konto wird nach dem Testzeitraum belastet, sofern nicht 24h vorher gekündigt.",
+    pay_restore: "Kauf wiederherstellen",
+  },
+  en: {
+    splash_title: "YOUR POSTURE.\nYOUR SCORE.",
+    splash_sub: "Analyze your posture in 60 seconds — scientific, visual, actionable.",
+    splash_cta: "Start for free",
+    splash_sub2: "1 free scan · No account needed",
+
+    ob1_title: "You're leaking energy daily.",
+    ob1_sub: "Poor posture causes back pain, headaches, and fatigue — without you noticing.",
+    ob1_stat1: "80%", ob1_label1: "suffer from back pain",
+    ob1_stat2: "6 cm", ob1_label2: "average head forward",
+    ob1_stat3: "40%", ob1_label3: "less lung capacity",
+    ob1_now: "Now",
+    ob1_day30: "Day 30",
+    ob1_cta: "Continue",
+
+    ob2_title: "How it works.",
+    ob2_steps: [
+      { n: "01", title: "Take 3 photos", sub: "Side, front, back. Silhouette overlay enforces the right pose." },
+      { n: "02", title: "AI analyzes you", sub: "On-device pose detection measures angles, misalignments, asymmetries." },
+      { n: "03", title: "Score + Plan", sub: "A–F per zone. Plus 3–5 daily exercises, 10 minutes. Weekly re-scan." },
+    ],
+    ob2_demo_label: "Live demo",
+    ob2_demo_text: "Pose detection tracks 33 body points in real time",
+    ob2_cta: "Get started",
+
+    ob3_title: "Quick. No account.",
+    ob3_sub: "What's your name?",
+    ob3_placeholder: "Your first name",
+    ob3_goal: "What's your main goal?",
+    ob3_goals: ["Reduce back pain", "Look more athletic", "More daily energy", "Optimize posture for sports"],
+    ob3_cta: "Go to scan",
+
+    cam_title: "Prepare scan",
+    cam_guide: [
+      "Place phone at hip height",
+      "Stand 2 meters from camera",
+      "Stand sideways to camera",
+      "Full body must be visible",
+    ],
+    cam_cta: "Start scan",
+    disclaimer: "Not a substitute for medical advice. See a doctor or physio if in pain.",
+
+    scan_labels: { side: "Side Profile", front: "Front", back: "Back" },
+    scan_hints: {
+      side: "Stand sideways, arms relaxed",
+      front: "Face the camera, arms slightly out",
+      back: "Back to camera, arms relaxed",
+    },
+    scan_live: "LIVE",
+    scan_done: "CAPTURED",
+    scan_offline: "OFFLINE",
+    scan_no_cam: "Camera unavailable — use gallery",
+    scan_next_step: "Next photo →",
+    scan_next: "Continue → Analysis",
+    scan_gallery: "From gallery",
+    result_your_photo: "Your photo",
+
+    result_title: "YOUR POSTURE SCORE",
+    result_date: "21 APR 2026",
+    result_overall: "Overall",
+    result_deviation: "deviation",
+    result_zones: [
+      { label: "Head Forward", score: "D", angle: "14°" },
+      { label: "Shoulders", score: "C", angle: "8°" },
+      { label: "Spine", score: "B", angle: "4°" },
+      { label: "Pelvis", score: "D", angle: "11°" },
+      { label: "Knee Axis", score: "B", angle: "3°" },
+    ],
+    result_zone_labels: {
+      head: "Head Forward", shoulders: "Shoulders",
+      spine: "Spine", pelvis: "Pelvis", knees: "Knee Axis",
+    },
+    result_unit: { head: "°", shoulders: "%", spine: "°", pelvis: "%", knees: "°" },
+    result_cta: "Unlock your plan →",
+    result_share: "Share result",
+    analyze_title: "Analyzing",
+    analyze_sub: "On-device. Photos stay on your phone.",
+    analyze_loading: "Loading model…",
+    analyze_step: (i, n) => `Photo ${i} / ${n}`,
+    analyze_done: "Computing scores…",
+    analyze_error: "No person detected. Step closer and make sure your full body is visible.",
+    analyze_retry: "Try again",
+
+    pay_title: "Start your\n30-day plan",
+    pay_sub: "10 minutes daily. Weekly scan. Visible results.",
+    pay_features: [
+      "Personalized exercise plan",
+      "Weekly re-scan with before/after",
+      "Unlimited scans",
+      "TikTok-ready result cards",
+    ],
+    pay_weekly_label: "Weekly",
+    pay_yearly_label: "Yearly",
+    pay_weekly_price: "CHF 4.99 / week",
+    pay_yearly_price: "CHF 39.99 / year",
+    pay_yearly_per_week: "= CHF 3.33 / week",
+    pay_trial_hint: "Try 3 days free",
+    pay_badge: "Popular",
+    pay_cta_prefix: "Try 3 days free — then",
+    pay_legal: "Cancel anytime. Apple account charged after trial unless cancelled 24h before.",
+    pay_restore: "Restore purchase",
+  },
+};
+
+const BG_COLORS = {
+  dark: '#080808',
+  anthracite: '#141418',
+  navy: '#060C18',
+};
+
+// ══════════════════════════════════════════════════════════════
+// Score helpers
+// ══════════════════════════════════════════════════════════════
+const scoreColors = { A:'#22c55e', B:'#86efac', C:'#eab308', D:'#f97316', F:'#ef4444' };
+const scoreGrads = {
+  A: 'linear-gradient(135deg,#166534,#22c55e)',
+  B: 'linear-gradient(135deg,#15803d,#86efac)',
+  C: 'linear-gradient(135deg,#854d0e,#eab308)',
+  D: 'linear-gradient(135deg,#9a3412,#f97316)',
+  F: 'linear-gradient(135deg,#991b1b,#ef4444)',
+};
+const scoreBarWidth = { A:'90%', B:'72%', C:'55%', D:'38%', F:'18%' };
+
+// ══════════════════════════════════════════════════════════════
+// PoseAnalyzer — thin wrapper around @mediapipe/tasks-vision.
+// Signature matches the RN-side implementation so the UI and
+// calculateScores() below stay untouched when porting.
+//   analyzer.init()          -> Promise<void>
+//   analyzer.analyze(image)  -> Promise<Landmark[] | null>
+//   analyzer.dispose()       -> void
+// A Landmark is { x, y, z, visibility } with x,y normalized [0..1].
+// ══════════════════════════════════════════════════════════════
+function createPoseAnalyzer() {
+  let landmarker = null;
+  let loading = null;
+  return {
+    async init() {
+      if (landmarker) return;
+      if (!loading) loading = (async () => {
+        const mod = await import('./vendor/tasks-vision.mjs');
+        const { FilesetResolver, PoseLandmarker } = mod;
+        const fileset = await FilesetResolver.forVisionTasks('./vendor/wasm');
+        landmarker = await PoseLandmarker.createFromOptions(fileset, {
+          baseOptions: { modelAssetPath: './vendor/pose_landmarker_lite.task', delegate: 'GPU' },
+          runningMode: 'IMAGE',
+          numPoses: 1,
+        });
+      })();
+      return loading;
+    },
+    async analyze(imageLike) {
+      if (!landmarker) await this.init();
+      const res = landmarker.detect(imageLike);
+      const pts = res?.landmarks?.[0];
+      return pts && pts.length === 33 ? pts : null;
+    },
+    dispose() {
+      if (landmarker) { landmarker.close(); landmarker = null; loading = null; }
+    },
+  };
+}
+
+// ══════════════════════════════════════════════════════════════
+// calculateScores — pure function, no DOM / React.
+// Portable 1:1 to React Native (MediaPipe native uses same schema).
+// Input : { side, front, back } each = Landmark[] | null
+// Output: { overall: 'A'..'F', zones: [{key, score, angleDeg}, ...] }
+// ══════════════════════════════════════════════════════════════
+const LM = { NOSE:0, LEFT_EAR:7, RIGHT_EAR:8, LEFT_SHOULDER:11, RIGHT_SHOULDER:12,
+             LEFT_HIP:23, RIGHT_HIP:24, LEFT_KNEE:25, RIGHT_KNEE:26,
+             LEFT_ANKLE:27, RIGHT_ANKLE:28 };
+
+function _visible(p, t=0.3) { return p && (p.visibility ?? 1) >= t; }
+function _mid(a, b) { return { x:(a.x+b.x)/2, y:(a.y+b.y)/2 }; }
+function _angleFromVertical(a, b) {
+  // returns absolute degrees between line a->b and vertical
+  const dx = b.x - a.x, dy = b.y - a.y;
+  return Math.abs(Math.atan2(Math.abs(dx), Math.abs(dy)) * 180 / Math.PI);
+}
+function _angleAt(a, b, c) {
+  // angle at b between ba and bc (degrees)
+  const v1 = { x:a.x-b.x, y:a.y-b.y };
+  const v2 = { x:c.x-b.x, y:c.y-b.y };
+  const dot = v1.x*v2.x + v1.y*v2.y;
+  const m1 = Math.hypot(v1.x, v1.y), m2 = Math.hypot(v2.x, v2.y);
+  if (!m1 || !m2) return 180;
+  return Math.acos(Math.max(-1, Math.min(1, dot/(m1*m2)))) * 180 / Math.PI;
+}
+function _gradeFromBands(val, bands) {
+  // bands = [A_max, B_max, C_max, D_max] ascending; above D_max => F
+  if (val == null || isNaN(val)) return null;
+  const [a,b,c,d] = bands;
+  if (val < a) return 'A';
+  if (val < b) return 'B';
+  if (val < c) return 'C';
+  if (val < d) return 'D';
+  return 'F';
+}
+function _median(arr) {
+  const xs = arr.filter(x => x != null).slice().sort();
+  if (!xs.length) return 'C';
+  return xs[Math.floor(xs.length/2)];
+}
+
+function calculateScores({ side, front, back }) {
+  const zones = [];
+
+  // 1. Head Forward — side view: ear to shoulder vs vertical
+  let headAngle = null, headGrade = null;
+  if (side) {
+    const ear = _visible(side[LM.LEFT_EAR]) ? side[LM.LEFT_EAR]
+              : _visible(side[LM.RIGHT_EAR]) ? side[LM.RIGHT_EAR] : null;
+    const shoulder = _visible(side[LM.LEFT_SHOULDER]) ? side[LM.LEFT_SHOULDER]
+                   : _visible(side[LM.RIGHT_SHOULDER]) ? side[LM.RIGHT_SHOULDER] : null;
+    if (ear && shoulder) {
+      headAngle = _angleFromVertical(shoulder, ear);
+      headGrade = _gradeFromBands(headAngle, [5, 10, 15, 20]);
+    }
+  }
+  zones.push({ key:'head', score: headGrade, angleDeg: headAngle });
+
+  // 2. Shoulders — front view: height diff / shoulder width (as %)
+  let shDiff = null, shGrade = null;
+  if (front) {
+    const l = front[LM.LEFT_SHOULDER], r = front[LM.RIGHT_SHOULDER];
+    if (_visible(l) && _visible(r)) {
+      const width = Math.abs(l.x - r.x);
+      if (width > 0.02) {
+        shDiff = Math.abs(l.y - r.y) / width * 100;
+        shGrade = _gradeFromBands(shDiff, [1.5, 3, 5, 8]);
+      }
+    }
+  }
+  zones.push({ key:'shoulders', score: shGrade, angleDeg: shDiff });
+
+  // 3. Spine — back view: shoulder-mid to hip-mid vs vertical
+  let spAngle = null, spGrade = null;
+  if (back) {
+    const ls = back[LM.LEFT_SHOULDER], rs = back[LM.RIGHT_SHOULDER];
+    const lh = back[LM.LEFT_HIP], rh = back[LM.RIGHT_HIP];
+    if (_visible(ls) && _visible(rs) && _visible(lh) && _visible(rh)) {
+      spAngle = _angleFromVertical(_mid(lh,rh), _mid(ls,rs));
+      spGrade = _gradeFromBands(spAngle, [3, 6, 10, 15]);
+    }
+  }
+  zones.push({ key:'spine', score: spGrade, angleDeg: spAngle });
+
+  // 4. Pelvis — front view: left/right hip height diff / hip width (%)
+  let pvDiff = null, pvGrade = null;
+  if (front) {
+    const l = front[LM.LEFT_HIP], r = front[LM.RIGHT_HIP];
+    if (_visible(l) && _visible(r)) {
+      const width = Math.abs(l.x - r.x);
+      if (width > 0.02) {
+        pvDiff = Math.abs(l.y - r.y) / width * 100;
+        pvGrade = _gradeFromBands(pvDiff, [1, 2, 4, 7]);
+      }
+    }
+  }
+  zones.push({ key:'pelvis', score: pvGrade, angleDeg: pvDiff });
+
+  // 5. Knee axis — side view: hip-knee-ankle, deviation from 180°
+  let knAngle = null, knGrade = null;
+  if (side) {
+    const hip = _visible(side[LM.LEFT_HIP]) ? side[LM.LEFT_HIP]
+              : _visible(side[LM.RIGHT_HIP]) ? side[LM.RIGHT_HIP] : null;
+    const knee = _visible(side[LM.LEFT_KNEE]) ? side[LM.LEFT_KNEE]
+               : _visible(side[LM.RIGHT_KNEE]) ? side[LM.RIGHT_KNEE] : null;
+    const ankle = _visible(side[LM.LEFT_ANKLE]) ? side[LM.LEFT_ANKLE]
+                : _visible(side[LM.RIGHT_ANKLE]) ? side[LM.RIGHT_ANKLE] : null;
+    if (hip && knee && ankle) {
+      knAngle = Math.abs(180 - _angleAt(hip, knee, ankle));
+      knGrade = _gradeFromBands(knAngle, [5, 10, 15, 20]);
+    }
+  }
+  zones.push({ key:'knees', score: knGrade, angleDeg: knAngle });
+
+  const overall = _median(zones.map(z => z.score));
+  return { overall, zones };
+}
+
+// ══════════════════════════════════════════════════════════════
+// SVG helpers
+// ══════════════════════════════════════════════════════════════
+function SilhouetteSVG({ style }) {
+  return (
+    <svg viewBox="0 0 100 200" style={style} fill="none">
+      <ellipse cx={50} cy={20} rx={12} ry={14} fill="rgba(255,255,255,0.12)" stroke="rgba(255,255,255,0.2)" strokeWidth={1}/>
+      <path d="M38 40 Q30 80 28 130 Q26 160 30 190" stroke="rgba(255,255,255,0.15)" strokeWidth={18} strokeLinecap="round"/>
+      <path d="M62 40 Q70 80 72 130 Q74 160 70 190" stroke="rgba(255,255,255,0.15)" strokeWidth={18} strokeLinecap="round"/>
+      <path d="M38 40 L62 40 L68 100 L32 100 Z" fill="rgba(255,255,255,0.1)" stroke="rgba(255,255,255,0.15)" strokeWidth={0.5}/>
+      <path d="M50 34 L50 110" stroke="rgba(255,255,255,0.08)" strokeWidth={2}/>
+    </svg>
+  );
+}
+
+function BadPostureSVG() {
+  return (
+    <svg viewBox="0 0 50 80" width={40} height={64} fill="none">
+      <circle cx={25} cy={10} r={7} fill="rgba(239,68,68,0.15)" stroke="#ef4444" strokeWidth={1.2}/>
+      <path d="M25 17 Q27 30 35 45 Q40 58 35 75" stroke="#ef4444" strokeWidth={5} strokeLinecap="round" fill="none" opacity={0.2}/>
+      <path d="M25 17 Q27 30 35 45 Q40 58 35 75" stroke="#ef4444" strokeWidth={1.2} strokeLinecap="round" fill="none"/>
+      <line x1={20} y1={28} x2={38} y2={22} stroke="#ef4444" strokeWidth={1} opacity={0.7}/>
+    </svg>
+  );
+}
+
+function GoodPostureSVG() {
+  return (
+    <svg viewBox="0 0 50 80" width={40} height={64} fill="none">
+      <circle cx={25} cy={10} r={7} fill="rgba(34,197,94,0.15)" stroke="#22c55e" strokeWidth={1.2}/>
+      <path d="M25 17 L25 70" stroke="#22c55e" strokeWidth={5} strokeLinecap="round" fill="none" opacity={0.2}/>
+      <path d="M25 17 L25 70" stroke="#22c55e" strokeWidth={1.2} strokeLinecap="round" fill="none"/>
+      <line x1={16} y1={28} x2={34} y2={28} stroke="#22c55e" strokeWidth={1} opacity={0.7}/>
+    </svg>
+  );
+}
+
+function SilhouetteGuide({ pose = 'side' }) {
+  // three variants — differ in arm position and facial hint
+  const arms = pose === 'front'
+    ? { l: "M46 52 L28 130 L30 170", r: "M74 52 L92 130 L90 170" }  // abgespreizt
+    : pose === 'back'
+      ? { l: "M46 52 L42 170", r: "M74 52 L78 170" }                 // am Körper, leicht nach aussen
+      : { l: "M56 52 L54 170", r: "M64 52 L66 170" };                // seitlich, deckend
+  return (
+    <svg viewBox="0 0 120 300" width={120} height={300} fill="none">
+      <ellipse cx={60} cy={25} rx={14} ry={16} stroke="#22c55e" strokeWidth={1.5} strokeDasharray="4 3" fill="rgba(34,197,94,0.05)"/>
+      {/* face hint only on front */}
+      {pose === 'front' && (
+        <g stroke="#22c55e" strokeWidth={1} opacity={0.5}>
+          <circle cx={55} cy={23} r={1} fill="#22c55e"/>
+          <circle cx={65} cy={23} r={1} fill="#22c55e"/>
+          <path d="M55 30 Q60 33 65 30"/>
+        </g>
+      )}
+      {/* torso */}
+      <path d="M46 42 Q40 80 42 130 Q40 160 44 190 Q46 220 48 280" stroke="#22c55e" strokeWidth={14} strokeLinecap="round" opacity={0.1} fill="none"/>
+      <path d="M74 42 Q80 80 78 130 Q80 160 76 190 Q74 220 72 280" stroke="#22c55e" strokeWidth={14} strokeLinecap="round" opacity={0.1} fill="none"/>
+      <path d="M46 42 Q40 80 42 130 Q40 160 44 190 Q46 220 48 280" stroke="#22c55e" strokeWidth={1.5} strokeLinecap="round" strokeDasharray="5 4" fill="none"/>
+      <path d="M74 42 Q80 80 78 130 Q80 160 76 190 Q74 220 72 280" stroke="#22c55e" strokeWidth={1.5} strokeLinecap="round" strokeDasharray="5 4" fill="none"/>
+      {/* arms */}
+      <path d={arms.l} stroke="#22c55e" strokeWidth={1.5} strokeLinecap="round" strokeDasharray="5 4" fill="none" opacity={0.8}/>
+      <path d={arms.r} stroke="#22c55e" strokeWidth={1.5} strokeLinecap="round" strokeDasharray="5 4" fill="none" opacity={0.8}/>
+      {/* shoulder/hip reference lines — only on front/back */}
+      {pose !== 'side' && (
+        <>
+          <line x1={40} y1={60} x2={80} y2={62} stroke="#86efac" strokeWidth={1} strokeDasharray="3 3"/>
+          <line x1={40} y1={145} x2={80} y2={145} stroke="#86efac" strokeWidth={1} strokeDasharray="3 3"/>
+        </>
+      )}
+      {/* corner markers */}
+      {[[60,9],[60,275],[35,40],[85,40],[35,278],[85,278]].map(([x,y],i)=>(
+        <rect key={i} x={x-4} y={y-4} width={8} height={8}
+          stroke="#22c55e" strokeWidth={1.5} fill="transparent"
+          transform={`rotate(45,${x},${y})`} opacity={0.8}/>
+      ))}
+    </svg>
+  );
+}
+
+function SetupIllustration() {
+  return (
+    <svg viewBox="0 0 320 140" width={280} height={120} fill="none">
+      <line x1={0} y1={130} x2={320} y2={130} stroke="rgba(255,255,255,0.1)" strokeWidth={1}/>
+      <circle cx={220} cy={28} r={10} stroke="#22c55e" strokeWidth={1.5} fill="rgba(34,197,94,0.1)"/>
+      <line x1={220} y1={38} x2={220} y2={95} stroke="#22c55e" strokeWidth={1.5}/>
+      <line x1={206} y1={55} x2={234} y2={52} stroke="#22c55e" strokeWidth={1.5}/>
+      <line x1={220} y1={95} x2={210} y2={130} stroke="#22c55e" strokeWidth={1.5}/>
+      <line x1={220} y1={95} x2={230} y2={130} stroke="#22c55e" strokeWidth={1.5}/>
+      <rect x={70} y={70} width={24} height={40} rx={4} stroke="#86efac" strokeWidth={1.5} fill="rgba(134,239,172,0.08)"/>
+      <line x1={82} y1={110} x2={82} y2={130} stroke="#86efac" strokeWidth={2}/>
+      <line x1={94} y1={105} x2={206} y2={105} stroke="rgba(255,255,255,0.2)" strokeWidth={1} strokeDasharray="4 4"/>
+      <path d="M94 101 L86 105 L94 109" stroke="rgba(255,255,255,0.3)" strokeWidth={1} fill="none"/>
+      <path d="M206 101 L214 105 L206 109" stroke="rgba(255,255,255,0.3)" strokeWidth={1} fill="none"/>
+      <text x={148} y={100} textAnchor="middle" fontFamily="DM Sans" fontSize={9} fill="rgba(255,255,255,0.4)">2 m</text>
+      <line x1={50} y1={90} x2={76} y2={90} stroke="#eab308" strokeWidth={1} strokeDasharray="3 3"/>
+      <text x={44} y={94} textAnchor="middle" fontFamily="DM Sans" fontSize={8} fill="#eab308">Hip</text>
+      <line x1={94} y1={82} x2={206} y2={52} stroke="rgba(134,239,172,0.15)" strokeWidth={0.75}/>
+    </svg>
+  );
+}
+
+// ══════════════════════════════════════════════════════════════
+// Screen 1: Splash
+// ══════════════════════════════════════════════════════════════
+function ScreenSplash({ onNext, c, bg }) {
+  return (
+    <div style={{
+      width:'100%',height:'100%',background:bg,
+      display:'flex',flexDirection:'column',alignItems:'center',
+      justifyContent:'space-between',padding:'0 0 40px',
+      position:'relative',overflow:'hidden',
+    }}>
+      {/* bg glow */}
+      <div style={{
+        position:'absolute',top:'15%',left:'50%',transform:'translateX(-50%)',
+        width:280,height:280,borderRadius:'50%',
+        background:'radial-gradient(circle,rgba(134,239,172,0.12) 0%,transparent 70%)',
+        pointerEvents:'none',
+      }}/>
+
+      {/* logo + headline */}
+      <div style={{paddingTop:100,display:'flex',flexDirection:'column',alignItems:'center',gap:24}}>
+        <div style={{
+          width:72,height:72,borderRadius:20,
+          background:'linear-gradient(135deg,#22c55e,#86efac)',
+          display:'flex',alignItems:'center',justifyContent:'center',
+          boxShadow:'0 0 40px rgba(34,197,94,0.4)',
+        }}>
+          <svg viewBox="0 0 40 40" width={38} height={38} fill="none">
+            <circle cx={20} cy={8} r={4} fill="#0a1a0f"/>
+            <path d="M20 14 L20 26 M14 18 L26 18 M20 26 L14 34 M20 26 L26 34" stroke="#0a1a0f" strokeWidth={3} strokeLinecap="round"/>
+          </svg>
+        </div>
+
+        <div style={{
+          fontFamily:'Bebas Neue',fontSize:52,letterSpacing:2,color:'#fff',
+          textAlign:'center',lineHeight:1.05,
+          textShadow:'0 0 60px rgba(134,239,172,0.3)',
+          whiteSpace:'pre-line',
+        }}>{c.splash_title}</div>
+
+        <div style={{
+          color:'rgba(255,255,255,0.55)',fontSize:15,textAlign:'center',
+          lineHeight:1.6,maxWidth:280,fontWeight:400,
+        }}>{c.splash_sub}</div>
+      </div>
+
+      {/* body scan illustration */}
+      <div style={{flex:1,display:'flex',alignItems:'center',justifyContent:'center',position:'relative'}}>
+        <SilhouetteSVG style={{width:160,height:260,opacity:0.9}}/>
+        <svg style={{position:'absolute',top:0,left:'50%',transform:'translateX(-50%)'}} width={160} height={260}>
+          <line x1={80} y1={60} x2={80} y2={200} stroke="#22c55e" strokeWidth={1.5} opacity={0.7} strokeDasharray="4 3"/>
+          <line x1={45} y1={90} x2={115} y2={90} stroke="#86efac" strokeWidth={1.5} opacity={0.6}/>
+          <line x1={55} y1={155} x2={105} y2={155} stroke="#86efac" strokeWidth={1.5} opacity={0.6}/>
+          <path d="M80 60 Q90 55 95 65" stroke="#eab308" strokeWidth={1.5} fill="none" opacity={0.8}/>
+          <circle cx={80} cy={60} r={3} fill="#22c55e"/>
+          <circle cx={80} cy={200} r={3} fill="#22c55e"/>
+          <rect x={100} y={55} width={32} height={22} rx={4} fill="rgba(234,179,8,0.15)" stroke="#eab308" strokeWidth={1}/>
+          <text x={116} y={71} textAnchor="middle" fontFamily="Bebas Neue" fontSize={14} fill="#eab308">C+</text>
+        </svg>
+      </div>
+
+      {/* CTA */}
+      <div style={{display:'flex',flexDirection:'column',alignItems:'center',gap:12,width:'100%',padding:'0 24px'}}>
+        <button onClick={onNext} style={{
+          width:'100%',height:56,borderRadius:16,border:'none',cursor:'pointer',
+          background:'linear-gradient(135deg,#22c55e,#16a34a)',
+          color:'#fff',fontFamily:'DM Sans',fontWeight:700,fontSize:17,
+          letterSpacing:0.3,
+          boxShadow:'0 4px 24px rgba(34,197,94,0.4)',
+          transition:'transform 0.15s',
+        }}
+          onMouseDown={e=>e.currentTarget.style.transform='scale(0.97)'}
+          onMouseUp={e=>e.currentTarget.style.transform='scale(1)'}
+          onMouseLeave={e=>e.currentTarget.style.transform='scale(1)'}
+        >{c.splash_cta}</button>
+        <div style={{color:'rgba(255,255,255,0.3)',fontSize:12}}>{c.splash_sub2}</div>
+      </div>
+    </div>
+  );
+}
+
+// ══════════════════════════════════════════════════════════════
+// Screen 2: Problem
+// ══════════════════════════════════════════════════════════════
+function ScreenProblem({ onNext, c, bg }) {
+  return (
+    <div style={{width:'100%',height:'100%',background:bg,display:'flex',flexDirection:'column',padding:'80px 24px 40px',overflow:'hidden',position:'relative'}}>
+      <div style={{flex:1,display:'flex',flexDirection:'column',gap:28}}>
+        <div style={{fontFamily:'Bebas Neue',fontSize:42,color:'#fff',lineHeight:1.1,letterSpacing:1}}>
+          {c.ob1_title}
+        </div>
+        <div style={{color:'rgba(255,255,255,0.55)',fontSize:15,lineHeight:1.7,fontWeight:400}}>
+          {c.ob1_sub}
+        </div>
+
+        {/* Stats */}
+        <div style={{display:'flex',flexDirection:'column',gap:12,marginTop:8}}>
+          {[
+            {stat:c.ob1_stat1,label:c.ob1_label1,color:'#ef4444'},
+            {stat:c.ob1_stat2,label:c.ob1_label2,color:'#f97316'},
+            {stat:c.ob1_stat3,label:c.ob1_label3,color:'#eab308'},
+          ].map(({stat,label,color},i)=>(
+            <div key={i} style={{
+              background:'rgba(255,255,255,0.04)',borderRadius:14,
+              padding:'16px 20px',display:'flex',alignItems:'center',gap:16,
+              border:`1px solid ${color}22`,
+              animation:`fadeUp 0.4s ${i*0.1+0.1}s both`,
+            }}>
+              <div style={{fontFamily:'Bebas Neue',fontSize:44,color,lineHeight:1,minWidth:80}}>{stat}</div>
+              <div style={{color:'rgba(255,255,255,0.7)',fontSize:14,lineHeight:1.4}}>{label}</div>
+            </div>
+          ))}
+        </div>
+
+        {/* Before / after */}
+        <div style={{
+          background:'rgba(255,255,255,0.03)',borderRadius:16,padding:'16px 20px',
+          border:'1px solid rgba(255,255,255,0.07)',
+          display:'flex',alignItems:'center',justifyContent:'space-around',
+        }}>
+          <div style={{display:'flex',flexDirection:'column',alignItems:'center',gap:8}}>
+            <BadPostureSVG/>
+            <div style={{fontSize:11,color:'rgba(255,255,255,0.35)',textTransform:'uppercase',letterSpacing:1}}>{c.ob1_now}</div>
+            <div style={{fontFamily:'Bebas Neue',fontSize:22,color:'#ef4444'}}>F</div>
+          </div>
+          <div style={{color:'rgba(255,255,255,0.2)',fontSize:22}}>→</div>
+          <div style={{display:'flex',flexDirection:'column',alignItems:'center',gap:8}}>
+            <GoodPostureSVG/>
+            <div style={{fontSize:11,color:'rgba(255,255,255,0.35)',textTransform:'uppercase',letterSpacing:1}}>{c.ob1_day30}</div>
+            <div style={{fontFamily:'Bebas Neue',fontSize:22,color:'#22c55e'}}>A</div>
+          </div>
+        </div>
+      </div>
+
+      <button onClick={onNext} style={{
+        width:'100%',height:56,borderRadius:16,cursor:'pointer',
+        background:'rgba(255,255,255,0.08)',
+        color:'#fff',fontFamily:'DM Sans',fontWeight:600,fontSize:17,
+        border:'1px solid rgba(255,255,255,0.12)',
+      }}>{c.ob1_cta} →</button>
+    </div>
+  );
+}
+
+// ══════════════════════════════════════════════════════════════
+// Screen 3: How it works
+// ══════════════════════════════════════════════════════════════
+function ScreenHowItWorks({ onNext, c, bg }) {
+  return (
+    <div style={{width:'100%',height:'100%',background:bg,display:'flex',flexDirection:'column',padding:'80px 24px 40px',overflow:'hidden'}}>
+      <div style={{fontFamily:'Bebas Neue',fontSize:42,color:'#fff',letterSpacing:1,marginBottom:32}}>
+        {c.ob2_title}
+      </div>
+
+      <div style={{flex:1,display:'flex',flexDirection:'column',gap:0}}>
+        {c.ob2_steps.map((step,i)=>(
+          <div key={i} style={{display:'flex',gap:16,paddingBottom:i<2?28:0,position:'relative'}}>
+            {i<2 && <div style={{position:'absolute',left:19,top:44,width:2,height:'calc(100% - 20px)',background:'rgba(34,197,94,0.2)'}}/>}
+            <div style={{
+              width:40,height:40,borderRadius:12,flexShrink:0,
+              background:'rgba(34,197,94,0.12)',border:'1px solid rgba(34,197,94,0.3)',
+              display:'flex',alignItems:'center',justifyContent:'center',
+              fontFamily:'Bebas Neue',fontSize:18,color:'#22c55e',
+            }}>{step.n}</div>
+            <div>
+              <div style={{fontWeight:700,fontSize:16,color:'#fff',marginBottom:6}}>{step.title}</div>
+              <div style={{color:'rgba(255,255,255,0.5)',fontSize:14,lineHeight:1.6}}>{step.sub}</div>
+            </div>
+          </div>
+        ))}
+      </div>
+
+      {/* Live-demo preview */}
+      <div style={{
+        background:'rgba(255,255,255,0.03)',borderRadius:16,
+        border:'1px solid rgba(255,255,255,0.07)',
+        padding:'16px',marginBottom:24,position:'relative',overflow:'hidden',
+      }}>
+        <div style={{display:'flex',alignItems:'center',gap:12}}>
+          <div style={{flex:1}}>
+            <div style={{color:'rgba(255,255,255,0.35)',fontSize:11,textTransform:'uppercase',letterSpacing:1,marginBottom:4}}>{c.ob2_demo_label}</div>
+            <div style={{color:'#fff',fontSize:13,fontWeight:500}}>{c.ob2_demo_text}</div>
+          </div>
+          <div style={{
+            width:56,height:56,borderRadius:12,
+            background:'linear-gradient(135deg,rgba(34,197,94,0.2),rgba(134,239,172,0.1))',
+            border:'1px solid rgba(34,197,94,0.3)',
+            display:'flex',alignItems:'center',justifyContent:'center',
+          }}>
+            <svg viewBox="0 0 32 32" width={28} height={28} fill="none">
+              <circle cx={16} cy={8} r={3} stroke="#22c55e" strokeWidth={1.5}/>
+              <path d="M16 11 L16 20 M11 14 L21 14 M16 20 L11 28 M16 20 L21 28" stroke="#22c55e" strokeWidth={1.5} strokeLinecap="round"/>
+              <circle cx={16} cy={8} r={1.5} fill="#22c55e" opacity={0.5}/>
+              <circle cx={11} cy={14} r={2} stroke="#86efac" strokeWidth={1}/>
+              <circle cx={21} cy={14} r={2} stroke="#86efac" strokeWidth={1}/>
+            </svg>
+          </div>
+        </div>
+      </div>
+
+      <button onClick={onNext} style={{
+        width:'100%',height:56,borderRadius:16,border:'none',cursor:'pointer',
+        background:'linear-gradient(135deg,#22c55e,#16a34a)',
+        color:'#fff',fontFamily:'DM Sans',fontWeight:700,fontSize:17,
+        boxShadow:'0 4px 24px rgba(34,197,94,0.35)',
+      }}>{c.ob2_cta} →</button>
+    </div>
+  );
+}
+
+// ══════════════════════════════════════════════════════════════
+// Screen 4: Personalization
+// ══════════════════════════════════════════════════════════════
+function ScreenPersonalize({ onNext, c, bg }) {
+  const [name, setName] = React.useState('');
+  const [goal, setGoal] = React.useState(null);
+  const ready = name && goal !== null;
+
+  return (
+    <div style={{width:'100%',height:'100%',background:bg,display:'flex',flexDirection:'column',padding:'80px 24px 40px',overflow:'hidden'}}>
+      <div style={{fontFamily:'Bebas Neue',fontSize:38,color:'#fff',letterSpacing:1,marginBottom:6}}>{c.ob3_title}</div>
+      <div style={{color:'rgba(255,255,255,0.45)',fontSize:14,marginBottom:28}}>{c.ob3_sub}</div>
+
+      <input
+        value={name} onChange={e=>setName(e.target.value)}
+        placeholder={c.ob3_placeholder}
+        style={{
+          width:'100%',height:52,borderRadius:14,
+          background:'rgba(255,255,255,0.06)',
+          border:`1px solid ${name?'rgba(34,197,94,0.5)':'rgba(255,255,255,0.1)'}`,
+          color:'#fff',fontFamily:'DM Sans',fontSize:16,padding:'0 16px',
+          outline:'none',marginBottom:32,transition:'border 0.2s',
+        }}
+      />
+
+      <div style={{color:'rgba(255,255,255,0.45)',fontSize:13,textTransform:'uppercase',letterSpacing:1,marginBottom:14}}>
+        {c.ob3_goal}
+      </div>
+
+      <div style={{flex:1,display:'flex',flexDirection:'column',gap:10,overflowY:'auto'}}>
+        {c.ob3_goals.map((g,i)=>(
+          <div key={i} onClick={()=>setGoal(i)} style={{
+            height:52,borderRadius:14,
+            background: goal===i ? 'rgba(34,197,94,0.15)' : 'rgba(255,255,255,0.04)',
+            border: `1px solid ${goal===i ? 'rgba(34,197,94,0.5)' : 'rgba(255,255,255,0.08)'}`,
+            display:'flex',alignItems:'center',padding:'0 16px',gap:12,cursor:'pointer',
+            transition:'all 0.15s',
+          }}>
+            <div style={{
+              width:20,height:20,borderRadius:'50%',
+              border:`2px solid ${goal===i ? '#22c55e' : 'rgba(255,255,255,0.2)'}`,
+              background: goal===i ? '#22c55e' : 'transparent',
+              display:'flex',alignItems:'center',justifyContent:'center',flexShrink:0,
+              transition:'all 0.15s',
+            }}>
+              {goal===i && <div style={{width:6,height:6,borderRadius:'50%',background:'#0a1a0f'}}/>}
+            </div>
+            <span style={{color:goal===i ? '#fff' : 'rgba(255,255,255,0.65)',fontSize:15,fontWeight: goal===i ? 600 : 400}}>{g}</span>
+          </div>
+        ))}
+      </div>
+
+      <div style={{paddingTop:20}}>
+        <button onClick={onNext} disabled={!ready} style={{
+          width:'100%',height:56,borderRadius:16,border:'none',cursor: ready?'pointer':'not-allowed',
+          background: ready ? 'linear-gradient(135deg,#22c55e,#16a34a)' : 'rgba(255,255,255,0.06)',
+          color:'#fff',fontFamily:'DM Sans',fontWeight:700,fontSize:17,
+          opacity: ready?1:0.4,transition:'all 0.2s',
+          boxShadow: ready?'0 4px 24px rgba(34,197,94,0.35)':'none',
+        }}>{c.ob3_cta} →</button>
+      </div>
+    </div>
+  );
+}
+
+// ══════════════════════════════════════════════════════════════
+// Screen 5: Camera Guide
+// ══════════════════════════════════════════════════════════════
+function ScreenCameraGuide({ onNext, c, bg }) {
+  return (
+    <div style={{width:'100%',height:'100%',background:bg,display:'flex',flexDirection:'column',overflow:'hidden'}}>
+      <div style={{padding:'80px 24px 0'}}>
+        <div style={{fontFamily:'Bebas Neue',fontSize:38,color:'#fff',letterSpacing:1,marginBottom:6}}>{c.cam_title}</div>
+      </div>
+
+      <div style={{flex:1,display:'flex',flexDirection:'column',alignItems:'center',justifyContent:'center',gap:0,padding:'0 24px',position:'relative'}}>
+        <SetupIllustration/>
+        <div style={{width:'100%',display:'flex',flexDirection:'column',gap:10,marginTop:20}}>
+          {c.cam_guide.map((g,i)=>(
+            <div key={i} style={{
+              display:'flex',alignItems:'center',gap:12,
+              background:'rgba(255,255,255,0.04)',borderRadius:12,
+              padding:'12px 14px',
+            }}>
+              <div style={{
+                width:24,height:24,borderRadius:'50%',flexShrink:0,
+                background:'rgba(34,197,94,0.2)',border:'1px solid rgba(34,197,94,0.4)',
+                display:'flex',alignItems:'center',justifyContent:'center',
+                fontFamily:'Bebas Neue',fontSize:13,color:'#22c55e',
+              }}>{i+1}</div>
+              <span style={{color:'rgba(255,255,255,0.7)',fontSize:14}}>{g}</span>
+            </div>
+          ))}
+        </div>
+      </div>
+
+      <div style={{padding:'0 24px 40px'}}>
+        <div style={{
+          background:'rgba(239,68,68,0.08)',border:'1px solid rgba(239,68,68,0.2)',
+          borderRadius:12,padding:'10px 14px',marginBottom:14,
+        }}>
+          <div style={{color:'rgba(239,68,68,0.8)',fontSize:12,lineHeight:1.5}}>⚠ {c.disclaimer}</div>
+        </div>
+        <button onClick={onNext} style={{
+          width:'100%',height:56,borderRadius:16,border:'none',cursor:'pointer',
+          background:'linear-gradient(135deg,#22c55e,#16a34a)',
+          color:'#fff',fontFamily:'DM Sans',fontWeight:700,fontSize:17,
+          boxShadow:'0 4px 24px rgba(34,197,94,0.35)',
+        }}>{c.cam_cta} →</button>
+      </div>
+    </div>
+  );
+}
+
+// ══════════════════════════════════════════════════════════════
+// Confetti (pre-computed random so rerenders are stable)
+// ══════════════════════════════════════════════════════════════
+function Confetti() {
+  const pieces = React.useMemo(() => {
+    const colors = ['#22c55e','#86efac','#eab308','#f97316','#fff','#60a5fa'];
+    return Array.from({length: 30}, (_, i) => ({
+      color: colors[i % colors.length],
+      left: Math.random() * 100,
+      delay: Math.random() * 0.8,
+      dur: 1 + Math.random(),
+      rot: Math.random() * 360,
+      endRot: Math.random() * 720,
+    }));
+  }, []);
+
+  return (
+    <div style={{position:'absolute',inset:0,pointerEvents:'none',overflow:'hidden',zIndex:100}}>
+      {pieces.map((p, i) => (
+        <div key={i} style={{
+          position:'absolute',top:'-10px',left:`${p.left}%`,width:6,height:12,
+          background:p.color,borderRadius:2,opacity:0,
+          animation:`confettiFall ${p.dur}s ${p.delay}s ease-in forwards`,
+          transform:`rotate(${p.rot}deg)`,
+          '--end-rot': `${p.endRot}deg`,
+        }}/>
+      ))}
+      <style>{`
+        @keyframes confettiFall {
+          0% { opacity: 1; transform: translateY(0) rotate(0deg); }
+          100% { opacity: 0; transform: translateY(900px) rotate(720deg); }
+        }
+      `}</style>
+    </div>
+  );
+}
+
+// ══════════════════════════════════════════════════════════════
+// Animated letter-grade counter (F → D → C → B → A)
+// ══════════════════════════════════════════════════════════════
+function AnimCounter({ target, duration = 1200, style = {} }) {
+  const [val, setVal] = React.useState('?');
+  React.useEffect(() => {
+    const letters = ['F','D','C','B','A'];
+    const ti = letters.indexOf(target);
+    if (ti < 0) { setVal(target); return; }
+    let start = null;
+    const step = (ts) => {
+      if (!start) start = ts;
+      const p = Math.min((ts - start) / duration, 1);
+      const i = Math.floor(p * ti);
+      setVal(letters[i]);
+      if (p < 1) requestAnimationFrame(step);
+      else setVal(target);
+    };
+    requestAnimationFrame(step);
+  }, [target, duration]);
+  return <span style={style}>{val}</span>;
+}
+
+// ══════════════════════════════════════════════════════════════
+// Screen 6: Scan (camera with silhouette)
+// ══════════════════════════════════════════════════════════════
+const STEPS = ['side', 'front', 'back'];
+
+function ScreenScan({ onNext, c, setPhoto }) {
+  const [stepIdx, setStepIdx] = React.useState(0);
+  const [captured, setCaptured] = React.useState(false);
+  const [countdown, setCountdown] = React.useState(null);
+  // 'pending' | 'active' | 'denied' | 'unsupported'
+  const [camState, setCamState] = React.useState('pending');
+  const fileInputRef = React.useRef(null);
+  const videoRef = React.useRef(null);
+  const streamRef = React.useRef(null);
+
+  const step = STEPS[stepIdx];
+  const isLastStep = stepIdx === STEPS.length - 1;
+
+  React.useEffect(() => {
+    let cancelled = false;
+    const mediaDevices = navigator.mediaDevices;
+    if (!mediaDevices || !mediaDevices.getUserMedia) {
+      setCamState('unsupported');
+      return;
+    }
+    mediaDevices.getUserMedia({ video: { facingMode: 'environment', width: { ideal: 1280 }, height: { ideal: 1920 } }, audio: false })
+      .then(stream => {
+        if (cancelled) { stream.getTracks().forEach(t => t.stop()); return; }
+        streamRef.current = stream;
+        if (videoRef.current) {
+          videoRef.current.srcObject = stream;
+          videoRef.current.play().catch(() => {});
+        }
+        setCamState('active');
+      })
+      .catch(() => { if (!cancelled) setCamState('denied'); });
+    return () => {
+      cancelled = true;
+      if (streamRef.current) {
+        streamRef.current.getTracks().forEach(t => t.stop());
+        streamRef.current = null;
+      }
+    };
+  }, []);
+
+  const captureFromVideo = async () => {
+    const video = videoRef.current;
+    if (!video || !video.videoWidth) return;
+    const canvas = document.createElement('canvas');
+    canvas.width = video.videoWidth;
+    canvas.height = video.videoHeight;
+    canvas.getContext('2d').drawImage(video, 0, 0);
+    const blob = await new Promise(res => canvas.toBlob(res, 'image/jpeg', 0.9));
+    if (blob && setPhoto) {
+      const file = new File([blob], `${step}.jpg`, { type: 'image/jpeg' });
+      setPhoto(step, file);
+    }
+  };
+
+  const doCapture = () => {
+    if (camState !== 'active') {
+      // no live feed — open gallery directly
+      fileInputRef.current?.click();
+      return;
+    }
+    setCountdown(3);
+    const t = setInterval(() => {
+      setCountdown(prev => {
+        if (prev <= 1) {
+          clearInterval(t);
+          captureFromVideo().then(() => setCaptured(true));
+          return null;
+        }
+        return prev - 1;
+      });
+    }, 700);
+  };
+
+  const onPickFile = (e) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    if (setPhoto) setPhoto(step, file);
+    setCaptured(true);
+    e.target.value = '';
+  };
+
+  const advance = () => {
+    if (isLastStep) {
+      onNext();
+    } else {
+      setStepIdx(i => i + 1);
+      setCaptured(false);
+    }
+  };
+
+  return (
+    <div style={{width:'100%',height:'100%',position:'relative',overflow:'hidden',background:'#000'}}>
+      {/* camera feed fallback gradient */}
+      <div style={{
+        position:'absolute',inset:0,
+        background:'linear-gradient(180deg,#0a0f08 0%,#0f1a0f 50%,#0a0f08 100%)',
+      }}/>
+      {/* live video (if camera granted) */}
+      <video
+        ref={videoRef}
+        playsInline
+        muted
+        autoPlay
+        style={{
+          position:'absolute',inset:0,width:'100%',height:'100%',objectFit:'cover',
+          opacity: camState === 'active' ? 1 : 0,
+          transition: 'opacity 0.3s ease',
+        }}
+      />
+
+      {/* grid overlay */}
+      <svg style={{position:'absolute',inset:0,opacity:0.15}} width="100%" height="100%">
+        <defs>
+          <pattern id="grid" width="40" height="40" patternUnits="userSpaceOnUse">
+            <path d="M 40 0 L 0 0 0 40" fill="none" stroke="#22c55e" strokeWidth="0.5"/>
+          </pattern>
+        </defs>
+        <rect width="100%" height="100%" fill="url(#grid)"/>
+      </svg>
+
+      {/* Silhouette overlay */}
+      <div style={{position:'absolute',inset:0,display:'flex',alignItems:'center',justifyContent:'center'}}>
+        <div style={{position:'relative'}} key={step}>
+          <SilhouetteGuide pose={step}/>
+          {step === 'side' && (
+            <div style={{
+              position:'absolute',right:-30,top:'30%',
+              color:'#22c55e',fontSize:28,
+              animation:'pulse 1.5s ease-in-out infinite',
+            }}>←</div>
+          )}
+        </div>
+      </div>
+
+      {/* scan line */}
+      {!captured && (
+        <div style={{
+          position:'absolute',left:0,right:0,height:2,
+          background:'linear-gradient(90deg,transparent,#22c55e,transparent)',
+          animation:'scanLine 2s ease-in-out infinite alternate',
+          boxShadow:'0 0 12px #22c55e',
+        }}/>
+      )}
+
+      {/* top HUD */}
+      <div style={{position:'absolute',top:80,left:0,right:0,display:'flex',justifyContent:'space-between',padding:'0 20px'}}>
+        <div style={{
+          background:'rgba(0,0,0,0.6)',backdropFilter:'blur(10px)',
+          borderRadius:10,padding:'6px 12px',
+          border:'1px solid rgba(34,197,94,0.3)',
+        }}>
+          <div style={{fontFamily:'Bebas Neue',fontSize:13,color:'#22c55e',letterSpacing:1}}>{c.scan_labels[step]}</div>
+          <div style={{fontSize:10,color:'rgba(255,255,255,0.4)',letterSpacing:0.5}}>{stepIdx+1} / {STEPS.length}</div>
+        </div>
+        <div style={{
+          background:'rgba(0,0,0,0.6)',backdropFilter:'blur(10px)',
+          borderRadius:10,padding:'6px 12px',
+          border:'1px solid rgba(255,255,255,0.1)',
+          display:'flex',alignItems:'center',gap:6,
+        }}>
+          <div style={{width:8,height:8,borderRadius:'50%',
+            background: captured ? '#22c55e' : camState === 'active' ? '#eab308' : '#ef4444',
+            boxShadow: `0 0 6px ${captured ? '#22c55e' : camState === 'active' ? '#eab308' : '#ef4444'}`}}/>
+          <div style={{fontSize:11,color:'rgba(255,255,255,0.6)'}}>
+            {captured ? c.scan_done : camState === 'active' ? c.scan_live : c.scan_offline}
+          </div>
+        </div>
+      </div>
+
+      {/* hint */}
+      {!captured && (
+        <div style={{position:'absolute',top:'58%',left:0,right:0,display:'flex',justifyContent:'center'}}>
+          <div style={{
+            background:'rgba(0,0,0,0.7)',backdropFilter:'blur(10px)',
+            borderRadius:20,padding:'8px 16px',
+            border: `1px solid ${camState === 'active' ? 'rgba(255,255,255,0.1)' : 'rgba(239,68,68,0.35)'}`,
+            fontSize:12,color:'rgba(255,255,255,0.7)',
+          }}>{camState === 'active' ? c.scan_hints[step] : c.scan_no_cam}</div>
+        </div>
+      )}
+
+      {/* countdown */}
+      {countdown && (
+        <div style={{
+          position:'absolute',inset:0,display:'flex',alignItems:'center',justifyContent:'center',
+          background:'rgba(0,0,0,0.4)',
+        }}>
+          <div style={{fontFamily:'Bebas Neue',fontSize:120,color:'#22c55e',textShadow:'0 0 40px #22c55e',lineHeight:1}}>
+            {countdown}
+          </div>
+        </div>
+      )}
+
+      {/* captured checkmark */}
+      {captured && (
+        <div style={{
+          position:'absolute',inset:0,display:'flex',alignItems:'center',justifyContent:'center',
+          background:'rgba(34,197,94,0.15)',
+        }}>
+          <div style={{
+            width:80,height:80,borderRadius:'50%',
+            background:'rgba(34,197,94,0.9)',
+            display:'flex',alignItems:'center',justifyContent:'center',
+            animation:'scaleIn 0.3s ease',
+          }}>
+            <svg viewBox="0 0 32 32" width={40} height={40} fill="none">
+              <path d="M6 16L13 23L26 9" stroke="#0a1a0f" strokeWidth={3} strokeLinecap="round" strokeLinejoin="round"/>
+            </svg>
+          </div>
+        </div>
+      )}
+
+      {/* bottom controls */}
+      <div style={{position:'absolute',bottom:50,left:0,right:0,display:'flex',justifyContent:'center',alignItems:'center',gap:20}}>
+        {!captured ? (
+          <>
+            <button onClick={() => fileInputRef.current?.click()} title={c.scan_gallery} style={{
+              width:52,height:52,borderRadius:14,border:'1px solid rgba(255,255,255,0.15)',
+              background:'rgba(0,0,0,0.6)',backdropFilter:'blur(10px)',cursor:'pointer',
+              display:'flex',alignItems:'center',justifyContent:'center',color:'#fff',
+            }}>
+              <svg viewBox="0 0 24 24" width={22} height={22} fill="none" stroke="currentColor" strokeWidth={1.6} strokeLinecap="round" strokeLinejoin="round">
+                <rect x={3} y={5} width={18} height={14} rx={2}/>
+                <circle cx={9} cy={11} r={2}/>
+                <path d="M21 16l-5-4-9 7"/>
+              </svg>
+            </button>
+            <button onClick={doCapture} style={{
+              width:72,height:72,borderRadius:'50%',border:'4px solid #22c55e',
+              background:'rgba(34,197,94,0.15)',cursor:'pointer',
+              display:'flex',alignItems:'center',justifyContent:'center',
+              boxShadow:'0 0 24px rgba(34,197,94,0.4)',
+            }}>
+              <div style={{width:50,height:50,borderRadius:'50%',background:'#22c55e'}}/>
+            </button>
+            <div style={{width:52,height:52}}/>{/* spacer to keep shutter centered */}
+          </>
+        ) : (
+          <button onClick={advance} style={{
+            height:52,borderRadius:16,border:'none',cursor:'pointer',
+            background:'linear-gradient(135deg,#22c55e,#16a34a)',
+            color:'#fff',fontFamily:'DM Sans',fontWeight:700,fontSize:16,
+            padding:'0 32px',boxShadow:'0 4px 24px rgba(34,197,94,0.4)',
+            animation:'fadeUp 0.4s ease',
+          }}>{isLastStep ? c.scan_next : c.scan_next_step}</button>
+        )}
+      </div>
+
+      <input
+        ref={fileInputRef}
+        type="file"
+        accept="image/*"
+        style={{display:'none'}}
+        onChange={onPickFile}
+      />
+    </div>
+  );
+}
+
+// ══════════════════════════════════════════════════════════════
+// Screen 6b: Analyzing — loads MediaPipe, runs pose detection
+// on each of the 3 captured photos, then writes computedScores.
+// ══════════════════════════════════════════════════════════════
+function loadImageFromFile(file) {
+  return new Promise((resolve, reject) => {
+    const url = URL.createObjectURL(file);
+    const img = new Image();
+    img.onload = () => { URL.revokeObjectURL(url); resolve(img); };
+    img.onerror = (e) => { URL.revokeObjectURL(url); reject(e); };
+    img.src = url;
+  });
+}
+
+function ScreenAnalyzing({ c, bg, photos, onDone, onError, onRetry }) {
+  const [stage, setStage] = React.useState('loading'); // loading | step1 | step2 | step3 | done | error
+  const [stepN, setStepN] = React.useState(0);
+
+  React.useEffect(() => {
+    let cancelled = false;
+    const analyzer = createPoseAnalyzer();
+    (async () => {
+      try {
+        setStage('loading');
+        await analyzer.init();
+        if (cancelled) return;
+        const order = ['side', 'front', 'back'];
+        const out = { side:null, front:null, back:null };
+        for (let i = 0; i < order.length; i++) {
+          const key = order[i];
+          const file = photos?.[key];
+          if (!file) continue;
+          setStepN(i+1);
+          setStage('step' + (i+1));
+          const img = await loadImageFromFile(file);
+          if (cancelled) return;
+          out[key] = await analyzer.analyze(img);
+        }
+        if (cancelled) return;
+        if (!out.side && !out.front && !out.back) {
+          setStage('error');
+          if (onError) onError('no-pose');
+          return;
+        }
+        setStage('done');
+        const scores = calculateScores(out);
+        if (onDone) onDone({ keypoints: out, scores });
+      } catch (e) {
+        console.error('[Analyze] failed:', e);
+        if (!cancelled) { setStage('error'); if (onError) onError(e); }
+      }
+    })();
+    return () => { cancelled = true; analyzer.dispose(); };
+  }, [photos]);
+
+  const labelFor = () => {
+    if (stage === 'loading') return c.analyze_loading;
+    if (stage === 'done')    return c.analyze_done;
+    if (stage === 'error')   return c.analyze_error;
+    return c.analyze_step(stepN, 3);
+  };
+
+  return (
+    <div style={{width:'100%',height:'100%',background:bg,display:'flex',flexDirection:'column',alignItems:'center',justifyContent:'center',padding:'0 24px',position:'relative'}}>
+      {/* pulsing scan ring */}
+      <div style={{position:'relative',width:120,height:120,display:'flex',alignItems:'center',justifyContent:'center',marginBottom:32}}>
+        <div style={{
+          position:'absolute',inset:0,borderRadius:'50%',
+          border:'2px solid rgba(34,197,94,0.3)',
+          animation: stage === 'error' ? 'none' : 'pulse 1.6s ease-in-out infinite',
+        }}/>
+        <div style={{
+          position:'absolute',inset:10,borderRadius:'50%',
+          border:'2px solid rgba(34,197,94,0.15)',
+          animation: stage === 'error' ? 'none' : 'pulse 1.6s ease-in-out 0.3s infinite',
+        }}/>
+        <div style={{fontFamily:'Bebas Neue',fontSize:42,color: stage === 'error' ? '#ef4444' : '#22c55e',lineHeight:1}}>
+          {stage === 'error' ? '!' : stage === 'done' ? '✓' : (stepN || '…')}
+        </div>
+      </div>
+
+      <div style={{fontFamily:'Bebas Neue',fontSize:28,letterSpacing:2,color:'#fff',textAlign:'center'}}>
+        {stage === 'error' ? '' : c.analyze_title}
+      </div>
+      <div style={{fontFamily:'DM Sans',fontSize:13,color:'rgba(255,255,255,0.5)',marginTop:8,marginBottom:24,textAlign:'center',maxWidth:280}}>
+        {c.analyze_sub}
+      </div>
+
+      <div style={{fontFamily:'DM Sans',fontSize:15,color: stage === 'error' ? '#ef4444' : 'rgba(255,255,255,0.85)',textAlign:'center',maxWidth:300,minHeight:40}}>
+        {labelFor()}
+      </div>
+
+      {/* progress dots */}
+      {stage !== 'error' && (
+        <div style={{display:'flex',gap:8,marginTop:20}}>
+          {[1,2,3].map(i => (
+            <div key={i} style={{
+              width:stepN === i ? 20 : 8, height:8, borderRadius:4,
+              background: stage === 'done' || stepN > i ? '#22c55e' : stepN === i ? 'rgba(34,197,94,0.8)' : 'rgba(255,255,255,0.15)',
+              transition:'all 0.3s ease',
+            }}/>
+          ))}
+        </div>
+      )}
+
+      {stage === 'error' && (
+        <button onClick={onRetry} style={{
+          marginTop:24,height:48,borderRadius:14,border:'none',cursor:'pointer',
+          background:'linear-gradient(135deg,#22c55e,#16a34a)',
+          color:'#fff',fontFamily:'DM Sans',fontWeight:700,fontSize:15,
+          padding:'0 28px',boxShadow:'0 4px 20px rgba(34,197,94,0.35)',
+        }}>{c.analyze_retry}</button>
+      )}
+    </div>
+  );
+}
+
+// ══════════════════════════════════════════════════════════════
+// Screen 7: Results
+// ══════════════════════════════════════════════════════════════
+function ScreenResults({ onNext, c, bg, tweaks, photos, computed }) {
+  const [revealed, setRevealed] = React.useState(false);
+  const [showConfetti, setShowConfetti] = React.useState(false);
+
+  // Prefer computed (real) scores; fall back to hardcoded copy if user skipped scan.
+  const zones = computed?.zones?.length
+    ? computed.zones.map(z => ({
+        label: c.result_zone_labels[z.key] || z.key,
+        score: z.score || 'C',
+        angle: z.angleDeg != null
+          ? `${z.angleDeg.toFixed(1)}${c.result_unit[z.key] || ''}`
+          : '—',
+      }))
+    : c.result_zones;
+  const overallScore = computed?.overall || 'C';
+
+  const photoUrls = React.useMemo(() => {
+    const urls = {};
+    ['side','front','back'].forEach(k => {
+      if (photos?.[k]) urls[k] = URL.createObjectURL(photos[k]);
+    });
+    return urls;
+  }, [photos]);
+
+  React.useEffect(() => () => {
+    Object.values(photoUrls).forEach(u => URL.revokeObjectURL(u));
+  }, [photoUrls]);
+
+  React.useEffect(() => {
+    const t = setTimeout(() => {
+      setRevealed(true);
+      if (tweaks?.confetti) setShowConfetti(true);
+    }, 400);
+    return () => clearTimeout(t);
+  }, [tweaks]);
+
+  const hasAnyPhoto = photoUrls.side || photoUrls.front || photoUrls.back;
+
+  return (
+    <div style={{width:'100%',height:'100%',background:bg,display:'flex',flexDirection:'column',overflow:'hidden',position:'relative'}}>
+      {showConfetti && <Confetti/>}
+
+      {/* top bar */}
+      <div style={{padding:'80px 24px 0',display:'flex',justifyContent:'space-between',alignItems:'flex-start'}}>
+        <div>
+          <div style={{fontFamily:'Bebas Neue',fontSize:14,color:'rgba(255,255,255,0.4)',letterSpacing:2}}>{c.result_title}</div>
+          <div style={{fontFamily:'Bebas Neue',fontSize:14,color:'rgba(255,255,255,0.3)',letterSpacing:1}}>{c.result_date}</div>
+        </div>
+        <button style={{
+          background:'rgba(255,255,255,0.06)',border:'1px solid rgba(255,255,255,0.1)',
+          borderRadius:10,padding:'6px 12px',color:'rgba(255,255,255,0.5)',
+          fontFamily:'DM Sans',fontSize:12,cursor:'pointer',
+        }}>{c.result_share} ↗</button>
+      </div>
+
+      {/* photo thumbnails */}
+      {hasAnyPhoto && (
+        <div style={{display:'flex',gap:8,justifyContent:'center',padding:'16px 24px 0'}}>
+          {['side','front','back'].map(k => photoUrls[k] ? (
+            <div key={k} style={{
+              width:56,height:72,borderRadius:10,overflow:'hidden',
+              border:'1px solid rgba(34,197,94,0.25)',
+              background:'rgba(0,0,0,0.3)',
+            }}>
+              <img src={photoUrls[k]} alt={k} style={{width:'100%',height:'100%',objectFit:'cover'}}/>
+            </div>
+          ) : null)}
+        </div>
+      )}
+
+      {/* overall score */}
+      <div style={{display:'flex',flexDirection:'column',alignItems:'center',padding:'20px 24px 0'}}>
+        <div style={{
+          width:100,height:100,borderRadius:24,
+          background: revealed ? scoreGrads[overallScore] : 'rgba(255,255,255,0.05)',
+          display:'flex',alignItems:'center',justifyContent:'center',
+          boxShadow: revealed ? `0 0 50px ${scoreColors[overallScore]}55` : 'none',
+          transition:'all 0.6s ease',
+          border:`2px solid ${revealed ? scoreColors[overallScore]+'55' : 'rgba(255,255,255,0.05)'}`,
+        }}>
+          {revealed ? (
+            tweaks?.animCounter
+              ? <AnimCounter target={overallScore} style={{fontFamily:'Bebas Neue',fontSize:64,color:'#fff',lineHeight:1}}/>
+              : <span style={{fontFamily:'Bebas Neue',fontSize:64,color:'#fff',lineHeight:1}}>{overallScore}</span>
+          ) : (
+            <span style={{fontFamily:'Bebas Neue',fontSize:48,color:'rgba(255,255,255,0.1)'}}>?</span>
+          )}
+        </div>
+        <div style={{fontFamily:'DM Sans',fontWeight:600,color:'rgba(255,255,255,0.5)',fontSize:12,marginTop:8,textTransform:'uppercase',letterSpacing:2}}>
+          {c.result_overall}
+        </div>
+      </div>
+
+      {/* zone scores */}
+      <div style={{flex:1,overflow:'auto',padding:'16px 24px 0',display:'flex',flexDirection:'column',gap:8}}>
+        {zones.map((z, i) => (
+          <div key={i} style={{
+            background:'rgba(255,255,255,0.04)',borderRadius:14,
+            padding:'12px 14px',display:'flex',alignItems:'center',gap:12,
+            border:'1px solid rgba(255,255,255,0.05)',
+            animation: revealed ? `fadeUp 0.3s ${i*0.06}s both` : 'none',
+          }}>
+            <div style={{
+              width:36,height:36,borderRadius:10,
+              background: revealed ? scoreGrads[z.score] : 'rgba(255,255,255,0.06)',
+              display:'flex',alignItems:'center',justifyContent:'center',
+              flexShrink:0,transition:'all 0.5s ease',transitionDelay:`${i*0.06}s`,
+            }}>
+              <span style={{fontFamily:'Bebas Neue',fontSize:22,color:'#fff'}}>{revealed?z.score:'?'}</span>
+            </div>
+            <div style={{flex:1}}>
+              <div style={{color:'#fff',fontSize:14,fontWeight:500}}>{z.label}</div>
+              <div style={{color:'rgba(255,255,255,0.35)',fontSize:12}}>{revealed?`${z.angle} ${c.result_deviation}`:''}</div>
+            </div>
+            {revealed && (
+              <div style={{
+                width:60,height:6,borderRadius:3,overflow:'hidden',
+                background:'rgba(255,255,255,0.08)',flexShrink:0,
+              }}>
+                <div style={{
+                  height:'100%',borderRadius:3,
+                  width: scoreBarWidth[z.score],
+                  background: scoreColors[z.score],
+                  transition:'width 0.8s ease',transitionDelay:`${i*0.1+0.3}s`,
+                }}/>
+              </div>
+            )}
+          </div>
+        ))}
+      </div>
+
+      <div style={{padding:'16px 24px 32px'}}>
+        <button onClick={onNext} style={{
+          width:'100%',height:56,borderRadius:16,border:'none',cursor:'pointer',
+          background:'linear-gradient(135deg,#22c55e,#16a34a)',
+          color:'#fff',fontFamily:'DM Sans',fontWeight:700,fontSize:17,
+          boxShadow:'0 4px 24px rgba(34,197,94,0.35)',
+        }}>{c.result_cta}</button>
+      </div>
+    </div>
+  );
+}
+
+// ══════════════════════════════════════════════════════════════
+// Screen 8: Paywall
+// ══════════════════════════════════════════════════════════════
+function ScreenPaywall({ c, bg }) {
+  const [selected, setSelected] = React.useState('year');
+  const price = selected === 'year' ? c.pay_yearly_price : c.pay_weekly_price;
+
+  return (
+    <div style={{width:'100%',height:'100%',background:bg,display:'flex',flexDirection:'column',overflow:'hidden'}}>
+      {/* hero */}
+      <div style={{
+        padding:'70px 24px 20px',
+        background:'linear-gradient(180deg,rgba(34,197,94,0.12) 0%,transparent 100%)',
+        borderBottom:'1px solid rgba(255,255,255,0.05)',
+      }}>
+        <div style={{fontFamily:'Bebas Neue',fontSize:38,color:'#fff',lineHeight:1.1,letterSpacing:1,whiteSpace:'pre-line',marginBottom:10}}>
+          {c.pay_title}
+        </div>
+        <div style={{color:'rgba(255,255,255,0.5)',fontSize:14,lineHeight:1.6}}>{c.pay_sub}</div>
+      </div>
+
+      {/* features */}
+      <div style={{padding:'16px 24px',display:'flex',flexDirection:'column',gap:10}}>
+        {c.pay_features.map((f, i) => (
+          <div key={i} style={{display:'flex',alignItems:'center',gap:12}}>
+            <div style={{
+              width:20,height:20,borderRadius:'50%',flexShrink:0,
+              background:'rgba(34,197,94,0.2)',
+              display:'flex',alignItems:'center',justifyContent:'center',
+            }}>
+              <svg viewBox="0 0 12 12" width={10} height={10}>
+                <path d="M2 6L5 9L10 3" stroke="#22c55e" strokeWidth={1.8} strokeLinecap="round" strokeLinejoin="round" fill="none"/>
+              </svg>
+            </div>
+            <span style={{color:'rgba(255,255,255,0.75)',fontSize:14}}>{f}</span>
+          </div>
+        ))}
+      </div>
+
+      {/* plans + CTA */}
+      <div style={{padding:'0 24px',display:'flex',flexDirection:'column',gap:10,flex:1,justifyContent:'flex-end',paddingBottom:0}}>
+        {/* yearly */}
+        <div onClick={() => setSelected('year')} style={{
+          borderRadius:16,padding:'14px 16px',cursor:'pointer',
+          background: selected==='year' ? 'rgba(34,197,94,0.12)' : 'rgba(255,255,255,0.04)',
+          border: `1.5px solid ${selected==='year' ? 'rgba(34,197,94,0.6)' : 'rgba(255,255,255,0.08)'}`,
+          position:'relative',transition:'all 0.2s',
+        }}>
+          <div style={{
+            position:'absolute',top:-10,right:12,
+            background:'#22c55e',borderRadius:6,padding:'2px 8px',
+            fontFamily:'DM Sans',fontWeight:700,fontSize:10,color:'#0a1a0f',
+            textTransform:'uppercase',letterSpacing:1,
+          }}>{c.pay_badge}</div>
+          <div style={{display:'flex',justifyContent:'space-between',alignItems:'center'}}>
+            <div>
+              <div style={{color:'#fff',fontWeight:600,fontSize:15}}>{c.pay_yearly_label}</div>
+              <div style={{color:'rgba(255,255,255,0.4)',fontSize:12}}>{c.pay_yearly_per_week}</div>
+            </div>
+            <div style={{fontFamily:'Bebas Neue',fontSize:22,color:selected==='year'?'#22c55e':'rgba(255,255,255,0.6)'}}>{c.pay_yearly_price}</div>
+          </div>
+        </div>
+
+        {/* weekly */}
+        <div onClick={() => setSelected('week')} style={{
+          borderRadius:16,padding:'14px 16px',cursor:'pointer',
+          background: selected==='week' ? 'rgba(34,197,94,0.12)' : 'rgba(255,255,255,0.04)',
+          border: `1.5px solid ${selected==='week' ? 'rgba(34,197,94,0.6)' : 'rgba(255,255,255,0.08)'}`,
+          transition:'all 0.2s',
+        }}>
+          <div style={{display:'flex',justifyContent:'space-between',alignItems:'center'}}>
+            <div>
+              <div style={{color:'#fff',fontWeight:600,fontSize:15}}>{c.pay_weekly_label}</div>
+              <div style={{color:'rgba(255,255,255,0.4)',fontSize:12}}>{c.pay_trial_hint}</div>
+            </div>
+            <div style={{fontFamily:'Bebas Neue',fontSize:22,color:selected==='week'?'#22c55e':'rgba(255,255,255,0.6)'}}>{c.pay_weekly_price}</div>
+          </div>
+        </div>
+
+        {/* CTA */}
+        <div style={{paddingBottom:8}}>
+          <button style={{
+            width:'100%',height:56,borderRadius:16,border:'none',cursor:'pointer',
+            background:'linear-gradient(135deg,#22c55e,#16a34a)',
+            color:'#fff',fontFamily:'DM Sans',fontWeight:700,fontSize:17,
+            boxShadow:'0 4px 24px rgba(34,197,94,0.35)',marginBottom:10,
+          }}>{c.pay_cta_prefix} {price}</button>
+
+          <div style={{color:'rgba(255,255,255,0.25)',fontSize:10,textAlign:'center',lineHeight:1.5,padding:'0 8px'}}>
+            {c.pay_legal}
+          </div>
+          <div style={{textAlign:'center',marginTop:8}}>
+            <button style={{background:'none',border:'none',color:'rgba(255,255,255,0.3)',fontFamily:'DM Sans',fontSize:12,cursor:'pointer'}}>
+              {c.pay_restore}
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+// ══════════════════════════════════════════════════════════════
+// App
+// ══════════════════════════════════════════════════════════════
+const SCREENS = ['splash','problem','howto','personalize','camguide','scan','analyzing','results','paywall'];
+
+function useLocalState(key, defaultVal) {
+  const [val, setVal] = React.useState(() => {
+    try {
+      const raw = localStorage.getItem(key);
+      return raw === null ? defaultVal : JSON.parse(raw);
+    } catch { return defaultVal; }
+  });
+  React.useEffect(() => {
+    try { localStorage.setItem(key, JSON.stringify(val)); } catch {}
+  }, [key, val]);
+  return [val, setVal];
+}
+
+function TweaksPanel({ tweaks, setTweaks, open, onClose }) {
+  if (!open) return null;
+  const set = (k, v) => setTweaks(t => ({ ...t, [k]: v }));
+
+  const Toggle = ({ on, onClick }) => (
+    <div onClick={onClick} style={{
+      width: 40, height: 22, borderRadius: 11,
+      background: on ? '#86efac' : 'rgba(255,255,255,0.15)',
+      cursor: 'pointer', position: 'relative', transition: 'background 0.2s',
+    }}>
+      <div style={{
+        position: 'absolute', top: 3, left: 3, width: 16, height: 16,
+        borderRadius: '50%', background: 'white',
+        transform: on ? 'translateX(18px)' : 'translateX(0)',
+        transition: 'transform 0.2s',
+      }}/>
+    </div>
+  );
+
+  const Label = ({ children }) => (
+    <label style={{display:'block',color:'rgba(255,255,255,0.5)',marginBottom:6,fontSize:11,textTransform:'uppercase',letterSpacing:0.08*11}}>
+      {children}
+    </label>
+  );
+
+  const selectStyle = {
+    width: '100%', background: 'rgba(255,255,255,0.08)',
+    border: '1px solid rgba(255,255,255,0.12)',
+    borderRadius: 8, color: 'white', padding: '8px 10px',
+    fontFamily: 'inherit', fontSize: 13, appearance: 'none',
+    marginBottom: 14,
+  };
+
+  return (
+    <div style={{
+      position: 'fixed', bottom: 24, right: 24,
+      background: 'rgba(20,20,25,0.95)',
+      border: '1px solid rgba(255,255,255,0.12)',
+      borderRadius: 16, padding: 20, width: 260, zIndex: 9999,
+      backdropFilter: 'blur(20px)', color: 'white',
+      fontFamily: 'DM Sans, sans-serif', fontSize: 13,
+    }}>
+      <div style={{display:'flex',alignItems:'center',justifyContent:'space-between',marginBottom:16}}>
+        <h3 style={{fontSize:14,fontWeight:600,color:'rgba(255,255,255,0.9)',letterSpacing:'0.02em'}}>Tweaks</h3>
+        <div onClick={onClose} style={{cursor:'pointer',color:'rgba(255,255,255,0.5)',fontSize:18,lineHeight:1,padding:'0 4px'}}>×</div>
+      </div>
+
+      <Label>Sprache / Language</Label>
+      <select value={tweaks.lang} onChange={e => set('lang', e.target.value)} style={selectStyle}>
+        <option value="de">🇩🇪 Deutsch</option>
+        <option value="en">🇬🇧 English</option>
+      </select>
+
+      <Label>Hintergrund / Background</Label>
+      <select value={tweaks.bg} onChange={e => set('bg', e.target.value)} style={selectStyle}>
+        <option value="dark">Pure Black</option>
+        <option value="anthracite">Anthrazit</option>
+        <option value="navy">Deep Navy</option>
+      </select>
+
+      <div style={{display:'flex',alignItems:'center',justifyContent:'space-between',marginBottom:14}}>
+        <label style={{margin:0,color:'rgba(255,255,255,0.5)',fontSize:11,textTransform:'uppercase',letterSpacing:0.08*11}}>Confetti</label>
+        <Toggle on={tweaks.confetti} onClick={() => set('confetti', !tweaks.confetti)}/>
+      </div>
+
+      <div style={{display:'flex',alignItems:'center',justifyContent:'space-between'}}>
+        <label style={{margin:0,color:'rgba(255,255,255,0.5)',fontSize:11,textTransform:'uppercase',letterSpacing:0.08*11}}>Score-Counter</label>
+        <Toggle on={tweaks.animCounter} onClick={() => set('animCounter', !tweaks.animCounter)}/>
+      </div>
+    </div>
+  );
+}
+
+const DEFAULT_TWEAKS = { lang: 'de', bg: 'dark', confetti: true, animCounter: true };
+
+function App() {
+  const [tweaks, setTweaks] = useLocalState('pm_tweaks', DEFAULT_TWEAKS);
+  const [screen, setScreen] = useLocalState('pm_screen', 'splash');
+  const [panelOpen, setPanelOpen] = React.useState(false);
+  const [capturedPhotos, setCapturedPhotos] = React.useState({ side: null, front: null, back: null });
+  const [computed, setComputed] = React.useState(null);
+
+  const bg = BG_COLORS[tweaks.bg] || BG_COLORS.dark;
+  const c = copy[tweaks.lang] || copy.de;
+
+  const idx = SCREENS.indexOf(screen);
+  const next = () => {
+    if (idx < SCREENS.length - 1) setScreen(SCREENS[idx + 1]);
+  };
+
+  const setPhoto = (step, file) => setCapturedPhotos(p => ({ ...p, [step]: file }));
+
+  const renderScreen = () => {
+    switch (screen) {
+      case 'splash':      return <ScreenSplash onNext={next} c={c} bg={bg}/>;
+      case 'problem':     return <ScreenProblem onNext={next} c={c} bg={bg}/>;
+      case 'howto':       return <ScreenHowItWorks onNext={next} c={c} bg={bg}/>;
+      case 'personalize': return <ScreenPersonalize onNext={next} c={c} bg={bg}/>;
+      case 'camguide':    return <ScreenCameraGuide onNext={next} c={c} bg={bg}/>;
+      case 'scan':        return <ScreenScan onNext={next} c={c} setPhoto={setPhoto}/>;
+      case 'analyzing':   return <ScreenAnalyzing
+                                   c={c} bg={bg} photos={capturedPhotos}
+                                   onDone={({ scores }) => { setComputed(scores); setScreen('results'); }}
+                                   onRetry={() => setScreen('scan')}
+                                 />;
+      case 'results':     return <ScreenResults onNext={next} c={c} bg={bg} tweaks={tweaks} photos={capturedPhotos} computed={computed}/>;
+      case 'paywall':     return <ScreenPaywall c={c} bg={bg}/>;
+      default:            return <ScreenSplash onNext={next} c={c} bg={bg}/>;
+    }
+  };
+
+  return (
+    <div style={{display:'flex',flexDirection:'column',alignItems:'center',gap:20}}>
+      <IOSDevice>
+        <div style={{height:'100%',overflow:'hidden'}} key={`${screen}-${tweaks.lang}-${tweaks.bg}`}>
+          {renderScreen()}
+        </div>
+      </IOSDevice>
+
+      {/* progress dots */}
+      <div style={{display:'flex',gap:8,alignItems:'center'}}>
+        {SCREENS.map((s, i) => (
+          <div key={s} onClick={() => setScreen(s)} style={{
+            width: i === idx ? 24 : 8, height: 8, borderRadius: 4,
+            background: i === idx ? '#22c55e' : i < idx ? 'rgba(34,197,94,0.4)' : 'rgba(255,255,255,0.15)',
+            cursor: 'pointer', transition: 'all 0.3s ease',
+          }}/>
+        ))}
+      </div>
+
+      <div style={{color:'rgba(255,255,255,0.25)',fontFamily:'DM Sans',fontSize:12,letterSpacing:1,textTransform:'uppercase'}}>
+        {idx + 1} / {SCREENS.length} — {screen}
+      </div>
+
+      {/* Tweaks trigger */}
+      <button onClick={() => setPanelOpen(o => !o)} style={{
+        position: 'fixed', top: 20, right: 20,
+        width: 40, height: 40, borderRadius: 12,
+        background: 'rgba(20,20,25,0.9)',
+        border: '1px solid rgba(255,255,255,0.12)',
+        cursor: 'pointer', color: 'white', zIndex: 9998,
+        display: 'flex', alignItems: 'center', justifyContent: 'center',
+      }} title="Tweaks">
+        <svg viewBox="0 0 16 16" width={16} height={16} fill="none" stroke="currentColor" strokeWidth={1.5} strokeLinecap="round">
+          <line x1={2} y1={4} x2={14} y2={4}/>
+          <line x1={2} y1={8} x2={14} y2={8}/>
+          <line x1={2} y1={12} x2={14} y2={12}/>
+          <circle cx={6} cy={4} r={2} fill="rgba(20,20,25,0.9)"/>
+          <circle cx={10} cy={8} r={2} fill="rgba(20,20,25,0.9)"/>
+          <circle cx={5} cy={12} r={2} fill="rgba(20,20,25,0.9)"/>
+        </svg>
+      </button>
+
+      <TweaksPanel tweaks={tweaks} setTweaks={setTweaks} open={panelOpen} onClose={() => setPanelOpen(false)}/>
+    </div>
+  );
+}
+
+ReactDOM.createRoot(document.getElementById('root')).render(<App/>);
+</script>
+</body>
+</html>
