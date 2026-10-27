@@ -1,0 +1,21 @@
+name: Sparkle Me APK
+on:
+  push:
+    paths: ['sparkle-me/**']
+  workflow_dispatch:
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: sparkle-me
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-java@v4
+        with: { distribution: temurin, java-version: '17' }
+      - uses: android-actions/setup-android@v3
+      - run: ./gradlew assembleRelease
+      - uses: actions/upload-artifact@v4
+        with:
+          name: SparkleMe-apk
+          path: sparkle-me/app/build/outputs/apk/release/app-release.apk
